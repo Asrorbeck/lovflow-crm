@@ -5,8 +5,12 @@ import axios from "axios";
 import { useUser } from "../../../context/UserContext";
 import empty from "../../../images/13_FOLDER_empty.json";
 import image1 from "../../../images/1.jpg";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 function Order() {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [flowerDetails, setFlowerDetails] = useState({});
@@ -41,12 +45,11 @@ function Order() {
             const flowerData = flowerResponse.data.Response;
             flowerDetailsMap[flowerId] = flowerData;
           } catch (error) {
-            console.error(`Error fetching flower ${flowerId}:`, error);
+            // Error handling
           }
         }
         setFlowerDetails(flowerDetailsMap);
       } catch (error) {
-        console.error("Buyurtmalarni olishda xatolik:", error);
         setOrders([]);
       } finally {
         setLoading(false);

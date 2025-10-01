@@ -2,8 +2,12 @@ import Lottie from "lottie-react";
 import React from "react";
 import { Container } from "react-bootstrap";
 import empty from "../../../images/13_FOLDER_empty.json"; // path moslab yoz
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 function Bonus() {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   return (
     <Container
       className="py-4"

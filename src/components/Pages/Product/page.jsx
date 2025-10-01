@@ -3,8 +3,12 @@ import { useParams } from "react-router-dom";
 import { Container, Card, Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
 import { useUser } from "../../../context/UserContext";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 const ProductDetailPage = () => {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,6 +18,9 @@ const ProductDetailPage = () => {
   const { userId } = useUser();
   const [cartId, setCartId] = useState(null);
   const [totalQuantity, setTotalQuantity] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
   // Mahsulotni olish
@@ -28,7 +35,7 @@ const ProductDetailPage = () => {
           setSelectedSizeId(productData.product_size[0].id);
         }
       } catch (error) {
-        console.error("Mahsulotni olishda xatolik:", error);
+        // Error handling
       } finally {
         setLoading(false);
       }
@@ -36,6 +43,8 @@ const ProductDetailPage = () => {
 
     fetchProduct();
   }, [id, API_BASE]);
+
+  console.log(product);
 
   // Savatda borligini tekshirish
   useEffect(() => {
@@ -67,7 +76,7 @@ const ProductDetailPage = () => {
         );
         setTotalQuantity(totalQty);
       } catch (err) {
-        console.error("Savatni tekshirishda xatolik:", err);
+        // Error handling
       }
     };
     checkCart();
@@ -82,6 +91,47 @@ const ProductDetailPage = () => {
       setTotalQuantity(totalQty);
     } catch (err) {
       setTotalQuantity(0);
+    }
+  };
+
+  // Image slider functions
+  const nextImage = () => {
+    if (product?.images?.length > 0) {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+    if (product?.images?.length > 0) {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
+      );
+    }
+  };
+
+  // Touch handlers for swipe functionality
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextImage();
+    } else if (isRightSwipe) {
+      prevImage();
     }
   };
 
@@ -124,7 +174,7 @@ const ProductDetailPage = () => {
       setQuantity(1);
       await fetchCartQuantity(); // Qo'shgandan keyin yangilash
     } catch (err) {
-      console.error("Savatga qo‘shishda xatolik:", err);
+      // Error handling
     }
   };
 
@@ -144,7 +194,7 @@ const ProductDetailPage = () => {
         setCartId(null);
         await fetchCartQuantity(); // O'chirgandan keyin yangilash
       } catch (err) {
-        console.error("Savatdan o'chirishda xatolik:", err);
+        // Error handling
       }
       return;
     }
@@ -159,7 +209,7 @@ const ProductDetailPage = () => {
       setQuantity(newQty);
       await fetchCartQuantity(); // Yangilagandan keyin yangilash
     } catch (err) {
-      console.error("Miqdor yangilanishida xatolik:", err);
+      // Error handling
     }
   };
 
@@ -185,76 +235,193 @@ const ProductDetailPage = () => {
         <Card className="shadow-sm border-0">
           {product.images?.length > 0 && (
             <div style={{ position: "relative" }}>
-              <Card.Img
-                variant="top"
-                src={product.images[0].image}
+              {/* Image Slider Container */}
+              <div
                 style={{
-                  objectFit: "cover",
-                  maxHeight: "450px",
-                  width: "100%",
+                  position: "relative",
+                  overflow: "hidden",
                   borderTopLeftRadius: "0.375rem",
                   borderTopRightRadius: "0.375rem",
                 }}
-              />
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                {/* Main Image Display */}
+                <Card.Img
+                  variant="top"
+                  src={product.images[currentImageIndex].image}
+                  style={{
+                    objectFit: "cover",
+                    maxHeight: "450px",
+                    width: "100%",
+                    borderTopLeftRadius: "0.375rem",
+                    borderTopRightRadius: "0.375rem",
+                    transition: "opacity 0.3s ease-in-out",
+                  }}
+                />
 
-              {/* Tag badges on image */}
-              {product.tags?.length > 0 && (
+                {/* Navigation Arrows */}
+                {product.images.length > 1 && (
+                  <>
+                    <Button
+                      variant="light"
+                      size="sm"
+                      style={{
+                        position: "absolute",
+                        left: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        border: "none",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        zIndex: 3,
+                      }}
+                      onClick={prevImage}
+                    >
+                      <i className="bi bi-chevron-left"></i>
+                    </Button>
+                    <Button
+                      variant="light"
+                      size="sm"
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        border: "none",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        zIndex: 3,
+                      }}
+                      onClick={nextImage}
+                    >
+                      <i className="bi bi-chevron-right"></i>
+                    </Button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                {product.images.length > 1 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "15px",
+                      right: "15px",
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      color: "white",
+                      padding: "4px 8px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      zIndex: 3,
+                    }}
+                  >
+                    {currentImageIndex + 1} / {product.images.length}
+                  </div>
+                )}
+
+                {/* Tag badges on image */}
+                {product.tags?.length > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      left: "12px",
+                      display: "flex",
+                      gap: "6px",
+                      flexWrap: "wrap",
+                      zIndex: 2,
+                    }}
+                  >
+                    {product.tags.map((tag) => {
+                      let icon;
+                      let bgColor;
+
+                      switch (tag.name.toLowerCase()) {
+                        case "новинка":
+                          icon = <i className="bi bi-stars"></i>;
+                          bgColor = "#4361ee"; // ko'k
+                          break;
+                        case "хит продаж":
+                          icon = <i className="bi bi-rocket-takeoff"></i>;
+                          bgColor = "#f72585"; // pushti
+                          break;
+                        case "популярный товар":
+                          icon = <i className="bi bi-fire"></i>;
+                          bgColor = "#ff9f1c"; // soft orange
+                          break;
+                        case "в наличии":
+                          icon = <i className="bi bi-check2-circle"></i>;
+                          bgColor = "#2ec4b6"; // pastel green-blue
+                          break;
+                        default:
+                          icon = <i className="bi bi-tag"></i>;
+                          bgColor = "#adb5bd"; // neutral soft gray
+                      }
+
+                      return (
+                        <span
+                          key={tag.id}
+                          style={{
+                            backgroundColor: bgColor,
+                            color: "white",
+                            padding: "4px 8px",
+                            fontSize: "12px",
+                            borderRadius: "10px",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          {icon} {tag.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Image Dots Indicator */}
+              {product.images.length > 1 && (
                 <div
                   style={{
-                    position: "absolute",
-                    top: "12px",
-                    left: "12px",
                     display: "flex",
-                    gap: "6px",
-                    flexWrap: "wrap",
-                    zIndex: 2,
+                    justifyContent: "center",
+                    gap: "8px",
+                    padding: "15px 0",
+                    backgroundColor: "#f8f9fa",
                   }}
                 >
-                  {product.tags.map((tag) => {
-                    let icon;
-                    let bgColor;
-
-                    switch (tag.name.toLowerCase()) {
-                      case "новинка":
-                        icon = <i className="bi bi-stars"></i>;
-                        bgColor = "#4361ee"; // ko‘k
-                        break;
-                      case "хит продаж":
-                        icon = <i className="bi bi-rocket-takeoff"></i>;
-                        bgColor = "#f72585"; // pushti
-                        break;
-                      case "популярный товар":
-                        icon = <i className="bi bi-fire"></i>;
-                        bgColor = "#ff9f1c"; // soft orange
-                        break;
-                      case "в наличии":
-                        icon = <i className="bi bi-check2-circle"></i>;
-                        bgColor = "#2ec4b6"; // pastel green-blue
-                        break;
-                      default:
-                        icon = <i className="bi bi-tag"></i>;
-                        bgColor = "#adb5bd"; // neutral soft gray
-                    }
-
-                    return (
-                      <span
-                        key={tag.id}
-                        style={{
-                          backgroundColor: bgColor,
-                          color: "white",
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          borderRadius: "10px",
-                          fontWeight: "bold",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        {icon} {tag.name}
-                      </span>
-                    );
-                  })}
+                  {product.images.map((_, index) => (
+                    <button
+                      key={index}
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        border: "none",
+                        backgroundColor:
+                          index === currentImageIndex ? "#ff4da6" : "#dee2e6",
+                        cursor: "pointer",
+                        transition: "background-color 0.3s ease",
+                      }}
+                      onClick={() => setCurrentImageIndex(index)}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -299,20 +466,98 @@ const ProductDetailPage = () => {
             {/* Extra Items (checkboxes) */}
             {product.extra_items?.length > 0 && (
               <div className="mb-4">
-                <div className="mb-2 fw-bold">Для удобства:</div>
-                {product.extra_items.map((item) => (
-                  <Form.Check
-                    key={item.id}
-                    type="checkbox"
-                    id={`extra-${item.id}`}
-                    label={`${item.name}  + ${item.price.toLocaleString(
-                      "ru-RU"
-                    )}₽`}
-                    checked={selectedExtras.includes(item.id)}
-                    onChange={() => handleExtraToggle(item.id)}
-                    className="mb-2"
-                  />
-                ))}
+                <div className="mb-3 fw-bold">Для удобства:</div>
+                <div className="row g-3">
+                  {product.extra_items.map((item) => (
+                    <div key={item.id} className="col-6">
+                      <Card
+                        className={`h-100 border-2 cursor-pointer ${
+                          selectedExtras.includes(item.id)
+                            ? "border-primary"
+                            : "border-light"
+                        }`}
+                        style={{
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          backgroundColor: selectedExtras.includes(item.id)
+                            ? "#f8f9ff"
+                            : "#f8f9fa",
+                        }}
+                        onClick={() => handleExtraToggle(item.id)}
+                      >
+                        {/* Product Image */}
+                        {item.image && (
+                          <Card.Img
+                            variant="top"
+                            src={item.image}
+                            style={{
+                              height: "120px",
+                              objectFit: "cover",
+                              borderTopLeftRadius: "0.375rem",
+                              borderTopRightRadius: "0.375rem",
+                            }}
+                          />
+                        )}
+
+                        <Card.Body className="p-3">
+                          {/* Product Name */}
+                          <Card.Title
+                            className="mb-2"
+                            style={{
+                              fontSize: "0.9rem",
+                              fontWeight: "500",
+                              lineHeight: "1.2",
+                              height: "2.4rem",
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
+                            {item.name}
+                          </Card.Title>
+
+                          {/* Price */}
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span
+                              className="fw-bold text-primary"
+                              style={{ fontSize: "1rem" }}
+                            >
+                              {item.price.toLocaleString("ru-RU")} ₽
+                            </span>
+
+                            {/* Custom Checkbox */}
+                            <div
+                              className={`d-flex align-items-center justify-content-center`}
+                              style={{
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "6px",
+                                border: "2px solid",
+                                borderColor: selectedExtras.includes(item.id)
+                                  ? "#ff4da6"
+                                  : "#dee2e6",
+                                backgroundColor: selectedExtras.includes(
+                                  item.id
+                                )
+                                  ? "#ff4da6"
+                                  : "transparent",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              {selectedExtras.includes(item.id) && (
+                                <i
+                                  className="bi bi-check text-white"
+                                  style={{ fontSize: "0.8rem" }}
+                                ></i>
+                              )}
+                            </div>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

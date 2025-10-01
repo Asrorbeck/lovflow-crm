@@ -1,8 +1,12 @@
 import React from "react";
 import { Button, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 function Privacy() {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const navigate = useNavigate();
 
   return (

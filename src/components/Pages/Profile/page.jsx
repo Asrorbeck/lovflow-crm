@@ -2,11 +2,13 @@ import React from "react";
 import { Card, Container, ListGroup, Row, Col, Image } from "react-bootstrap";
 import profilePic from "../../../images/1.jpg"; // profilingiz rasmi shu yerda
 import { useUser } from "../../../context/UserContext";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 const ProfilePage = () => {
-  const { userData } = useUser();
+  // Enable Telegram back button
+  useTelegramBackButton();
 
-  console.log(userData);
+  const { userData } = useUser();
 
   return (
     <Container className="mt-4">

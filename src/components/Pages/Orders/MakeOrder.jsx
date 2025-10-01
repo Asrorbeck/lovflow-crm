@@ -366,7 +366,6 @@ export default function OrderForm() {
         setApiPickupPoints([]);
       }
     } catch (error) {
-      console.error("Error fetching delivery points:", error);
       setApiPickupPoints([]);
     } finally {
       setLoadingPoints(false);
@@ -564,7 +563,6 @@ export default function OrderForm() {
                 },
               };
             } catch (error) {
-              console.error(`Error fetching product ${item.flower.id}:`, error);
               // Fallback if product fetch fails
               return {
                 ...item,
@@ -579,7 +577,7 @@ export default function OrderForm() {
 
         setCartItems(itemsWithExtras);
       } catch (error) {
-        console.error("Carts fetch error:", error);
+        // Error handling
       }
     };
 
@@ -600,10 +598,26 @@ export default function OrderForm() {
       // Update localStorage cart quantity
       localStorage.setItem("cartQuantity", "0");
 
-      console.log("Cart cleared successfully");
+      // Cart cleared successfully
     } catch (error) {
-      console.error("Error clearing cart:", error);
+      // Error handling
     }
+  };
+
+  // Check if any cart item has "открытка" extra item selected
+  const hasPostcardExtra = () => {
+    return cartItems.some((item) => {
+      const selectedExtras = item.extras || [];
+      const extraItems = item.flower?.extra_items || [];
+
+      // Check if any selected extra has "открытка" in its name (case insensitive)
+      return selectedExtras.some((selectedExtra) => {
+        const extraId =
+          typeof selectedExtra === "object" ? selectedExtra.id : selectedExtra;
+        const extraItem = extraItems.find((extra) => extra.id === extraId);
+        return extraItem && extraItem.name.toLowerCase().includes("открытка");
+      });
+    });
   };
 
   const isFormValid = () => {
@@ -685,14 +699,14 @@ export default function OrderForm() {
         promo_code: promoData ? promoData.id : null, // Send promo code ID if exists
       };
 
-      console.log(payload);
+      // Payload prepared
 
       await axios.post(`${API_BASE}/order/`, payload);
 
       // Clear cart after successful order
       await clearCart();
 
-      toast.success("Buyurtma muvaffaqiyatli yuborildi!", {
+      toast.success("Заказ успешно отправлен!", {
         position: "top-center",
         autoClose: 3000,
         hideProgressBar: false,
@@ -704,9 +718,8 @@ export default function OrderForm() {
       // Navigate to home page
       navigate("/");
     } catch (err) {
-      console.error("Order error:", err);
       toast.error(
-        "Buyurtma yuborishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+        "Произошла ошибка при отправке заказа. Пожалуйста, попробуйте еще раз.",
         {
           position: "top-center",
           autoClose: 5000,
@@ -807,50 +820,75 @@ export default function OrderForm() {
         </Button>
       </div>
 
+      {/* Postcard Extra Indicator */}
+      {hasPostcardExtra() && (
+        <div className="alert alert-info mb-3" style={{ fontSize: "0.9rem" }}>
+          <i className="bi bi-file-earmark-text me-2"></i>
+          <strong>Открытка включена в заказ</strong>
+          <br />
+          <small>Заполните поля для открытки ниже</small>
+        </div>
+      )}
+
       {/* Form */}
       <Form className="d-flex flex-column gap-3">
-        {[
-          {
-            field: "name",
-            icon: "bi-person",
-            placeholder: "ФИО",
-            required: true,
-          },
-          {
-            field: "phone_number",
-            icon: "bi-telephone",
-            placeholder: "Телефон",
-            required: true,
-          },
-          {
-            field: "comment",
-            icon: "bi-chat-dots",
-            placeholder: "Комментарий",
-            required: false,
-          },
-          {
-            field: "postcard",
-            icon: "bi-file-earmark-text",
-            placeholder: "Открытка",
-          },
-          {
-            field: "postcard_text",
-            icon: "bi-pencil",
-            placeholder: "Напишите текст открытки",
-          },
-          { field: "reason", icon: "bi-gift", placeholder: "Повод" },
-          {
-            field: "receiver_phone_number",
-            icon: "bi-telephone",
-            placeholder: "Номер телефона получателя",
-          },
-          {
-            field: "delivery_time",
-            icon: "bi-clock",
-            placeholder: "Время доставки",
-            required: true,
-          },
-        ].map((item) => (
+        {(() => {
+          const baseFields = [
+            {
+              field: "name",
+              icon: "bi-person",
+              placeholder: "ФИО",
+              required: true,
+            },
+            {
+              field: "phone_number",
+              icon: "bi-telephone",
+              placeholder: "Телефон",
+              required: true,
+            },
+            {
+              field: "comment",
+              icon: "bi-chat-dots",
+              placeholder: "Комментарий",
+              required: false,
+            },
+          ];
+
+          // Add postcard fields only if "открытка" extra is selected
+          const postcardFields = hasPostcardExtra()
+            ? [
+                {
+                  field: "postcard",
+                  icon: "bi-file-earmark-text",
+                  placeholder: "Открытка",
+                  isPostcard: true,
+                },
+                {
+                  field: "postcard_text",
+                  icon: "bi-pencil",
+                  placeholder: "Напишите текст открытки",
+                  isPostcard: true,
+                },
+              ]
+            : [];
+
+          const remainingFields = [
+            { field: "reason", icon: "bi-gift", placeholder: "Повод" },
+            {
+              field: "receiver_phone_number",
+              icon: "bi-telephone",
+              placeholder: "Номер телефона получателя",
+            },
+            {
+              field: "delivery_time",
+              icon: "bi-clock",
+              placeholder: "Время доставки",
+              required: true,
+            },
+          ];
+
+          return [...baseFields, ...postcardFields, ...remainingFields];
+        })().map((item) => (
           <div style={inputWrapperStyle} key={item.field}>
             <i className={`bi ${item.icon}`} style={inputIconStyle}></i>
             <Form.Control
@@ -946,7 +984,7 @@ export default function OrderForm() {
             fontWeight: 500,
           }}
         >
-          {loading ? "Yuborilmoqda..." : "Рассчитать доставку"}
+          {loading ? "Отправляется..." : "Рассчитать доставку"}
         </Button>
       </Form>
 

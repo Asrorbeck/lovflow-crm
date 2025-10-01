@@ -10,8 +10,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 const CartPage = () => {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const [showPromoModal, setShowPromoModal] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoData, setPromoData] = useState(null);
@@ -50,7 +54,6 @@ const CartPage = () => {
                 extra_items: productData.extra_items || [], // Complete extra items data
               };
             } catch (error) {
-              console.error(`Error fetching product ${item.flower.id}:`, error);
               // Fallback if product fetch fails
               return {
                 id: item.id,
@@ -69,7 +72,7 @@ const CartPage = () => {
         setCartItems(itemsWithExtras);
         updateFooterCartBadge(itemsWithExtras);
       } catch (err) {
-        console.error("Cart fetch error:", err);
+        // Error handling
       }
     };
     fetchCart();
@@ -144,9 +147,7 @@ const CartPage = () => {
 
       setPromoData(promoResponse);
       setPromoError("");
-      console.log("Промокод активирован:", promoResponse);
     } catch (error) {
-      console.error("Промокод ошибка:", error);
       if (error.response?.status === 404) {
         setPromoError("Промокод не найден");
       } else if (error.response?.status === 400) {
@@ -186,7 +187,7 @@ const CartPage = () => {
       setCartItems(updatedItems);
       updateFooterCartBadge(updatedItems);
     } catch (err) {
-      console.error("Quantity update error:", err);
+      // Error handling
     }
   };
 
@@ -218,7 +219,6 @@ const CartPage = () => {
                 draggable: true,
               });
             } catch (err) {
-              console.error("Delete error:", err);
               toast.error("Ошибка при удалении товара", {
                 position: "top-center",
                 autoClose: 3000,

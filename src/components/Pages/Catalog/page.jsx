@@ -11,8 +11,12 @@ import {
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import image1 from "../../../images/1.jpg";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 const CatalogPage = () => {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,7 @@ const CatalogPage = () => {
         const categoriesData = categoriesResponse.data.Response || [];
         setCategories(categoriesData);
       } catch (error) {
-        console.error("Ma'lumotlarni olishda xatolik:", error);
+        // Error handling
       } finally {
         setLoading(false);
       }
@@ -57,9 +61,7 @@ const CatalogPage = () => {
   };
 
   const handleCategoryClick = (category) => {
-    // Navigate to category page or filter products by category
-    console.log("Category clicked:", category.name);
-    // You can implement category filtering here
+    navigate(`/catalog/${category.id}`);
   };
 
   if (loading) {

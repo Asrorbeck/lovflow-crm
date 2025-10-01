@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import HomePage from "./components/Pages/Main/page";
 import BottomNavBar from "./components/Parts/Footer/footer";
 import CatalogPage from "./components/Pages/Catalog/page";
+import CategoryCatalogPage from "./components/Pages/Catalog/CatalogPage";
 import SearchPage from "./components/Pages/SearchBar/page";
 import CartPage from "./components/Pages/Cart/page";
 import ProfilePage from "./components/Pages/Profile/page";
@@ -14,8 +15,28 @@ import Order from "./components/Pages/Orders/page";
 import Bonus from "./components/Pages/Bonus/page";
 import { ToastContainer } from "react-toastify";
 import OrderForm from "./components/Pages/Orders/MakeOrder";
+import TestPage from "./components/Pages/Test/page";
+import { initTelegramWebApp } from "./utils/telegramUtils";
 
 function App() {
+  // Initialize Telegram WebApp on app start
+  useEffect(() => {
+    const initApp = () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        console.log("Initializing Telegram WebApp...");
+        initTelegramWebApp();
+      }
+    };
+
+    // Try to initialize immediately
+    initApp();
+
+    // Also try after a delay in case the script loads later
+    const timeoutId = setTimeout(initApp, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
     <Router>
       <div className="pb-5 mb-5">
@@ -24,6 +45,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
+          <Route
+            path="/catalog/:categoryId"
+            element={<CategoryCatalogPage />}
+          />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -32,6 +57,7 @@ function App() {
           <Route path="/orders" element={<Order />} />
           <Route path="/bonus" element={<Bonus />} />
           <Route path="/make-order" element={<OrderForm />} />
+          <Route path="/test" element={<TestPage />} />
         </Routes>
       </div>
       <BottomNavBar />

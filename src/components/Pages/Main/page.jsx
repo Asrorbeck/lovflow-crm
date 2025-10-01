@@ -19,7 +19,7 @@ const HomePage = () => {
         const res = await axios.get(`${baseURL}/categories/`);
         setCategories(res.data.Response || []);
       } catch (err) {
-        console.error("Ошибка при загрузке категорий:", err);
+        // Error handling
       } finally {
         setLoading(false);
       }
@@ -27,8 +27,6 @@ const HomePage = () => {
 
     fetchCategories();
   }, []);
-
-  console.log(categories);
 
   if (loading) {
     return (
@@ -60,9 +58,10 @@ const HomePage = () => {
       <Carousel fade interval={3000}>
         <Carousel.Item>
           <img
-            className="d-block w-100 rounded"
+            className="d-block w-100"
             src={image7}
             alt="First slide"
+            style={{ borderRadius: "16px" }}
           />
           <Carousel.Caption>
             <h3>LABUBU ИЗ ЦВЕТОВ</h3>
@@ -70,16 +69,18 @@ const HomePage = () => {
         </Carousel.Item>
         <Carousel.Item>
           <img
-            className="d-block w-100 rounded"
+            className="d-block w-100"
             src={image1}
             alt="Second slide"
+            style={{ borderRadius: "16px" }}
           />
         </Carousel.Item>
         <Carousel.Item>
           <img
-            className="d-block w-100 rounded"
+            className="d-block w-100"
             src={image3}
             alt="Third slide"
+            style={{ borderRadius: "16px" }}
           />
         </Carousel.Item>
       </Carousel>
@@ -89,7 +90,11 @@ const HomePage = () => {
         <div key={section.id} className="mt-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h5>{section.name}</h5>
-            <Button variant="light" size="sm">
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => navigate(`/catalog/${section.id}`)}
+            >
               Смотреть все
             </Button>
           </div>
@@ -103,6 +108,7 @@ const HomePage = () => {
                   flex: "0 0 auto",
                   cursor: "pointer",
                   position: "relative",
+                  borderRadius: "16px",
                 }}
                 className="shadow-sm"
                 onClick={() => navigate(`/product/${item.id}`)}
@@ -115,8 +121,8 @@ const HomePage = () => {
                       width: "100%",
                       height: "200px",
                       objectFit: "cover",
-                      borderTopLeftRadius: "0.375rem",
-                      borderTopRightRadius: "0.375rem",
+                      borderTopLeftRadius: "16px",
+                      borderTopRightRadius: "16px",
                     }}
                   />
 

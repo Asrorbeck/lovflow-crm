@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useTelegramBackButton } from "../../../hooks/useTelegramBackButton";
 
 const SearchPage = () => {
+  // Enable Telegram back button
+  useTelegramBackButton();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -29,7 +33,7 @@ const SearchPage = () => {
         const productsData = response.data.Response || [];
         setProducts(productsData);
       } catch (error) {
-        console.error("Mahsulotlarni olishda xatolik:", error);
+        // Error handling
       } finally {
         setLoading(false);
       }
